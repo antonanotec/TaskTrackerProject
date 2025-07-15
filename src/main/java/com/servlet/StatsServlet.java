@@ -1,8 +1,7 @@
-// stats_servlet.java
+// StatsServlet.java
 package com.tasktracker.servlet;
 
 import com.tasktracker.manager.StatisticsManager;
-import com.tasktracker.model.User;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,16 +31,15 @@ public class StatsServlet extends HttpServlet {
         int userId = (int) session.getAttribute("userId");
 
         try {
-            [cite_start]// Calcola le statistiche [cite: 156]
             Map<String, Integer> completedTasksToday = statisticsManager.getCompletedTasksCountToday(userId);
             Map<String, Integer> completedTasksThisWeek = statisticsManager.getCompletedTasksCountThisWeek(userId);
             Map<String, Integer> tasksByCategory = statisticsManager.getTasksCountByCategory(userId);
             Map<String, Integer> tasksByPriority = statisticsManager.getTasksCountByPriority(userId);
 
-            request.setAttribute("completedTasksToday", completedTasksToday); [cite_start]// Attività completate oggi/settimana [cite: 157]
+            request.setAttribute("completedTasksToday", completedTasksToday);
             request.setAttribute("completedTasksThisWeek", completedTasksThisWeek);
-            request.setAttribute("tasksByCategory", tasksByCategory); [cite_start]// Distribuzione per categoria [cite: 158]
-            request.setAttribute("tasksByPriority", tasksByPriority); [cite_start]// Distribuzione per priorità [cite: 159]
+            request.setAttribute("tasksByCategory", tasksByCategory);
+            request.setAttribute("tasksByPriority", tasksByPriority);
 
             request.getRequestDispatcher("/WEB-INF/views/stats.jsp").forward(request, response);
         } catch (Exception e) {
