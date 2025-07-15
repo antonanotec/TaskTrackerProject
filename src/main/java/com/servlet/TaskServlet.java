@@ -1,4 +1,4 @@
-// task_servlet.java
+// TaskServlet.java
 package com.tasktracker.servlet;
 
 import com.tasktracker.dao.TaskDAO;
@@ -55,12 +55,12 @@ public class TaskServlet extends HttpServlet {
 
                 List<Task> tasks;
                 if (filterPriority != null && !filterPriority.isEmpty()) {
-                    tasks = taskDAO.getTasksByPriority(userId, Integer.parseInt(filterPriority)); [cite_start]// Filtra per priorità [cite: 148]
+                    tasks = taskDAO.getTasksByPriority(userId, Integer.parseInt(filterPriority));
                 } else if (filterCategory != null && !filterCategory.isEmpty()) {
-                    tasks = taskDAO.getTasksByCategory(userId, Integer.parseInt(filterCategory)); [cite_start]// Filtra per categoria [cite: 37]
+                    tasks = taskDAO.getTasksByCategory(userId, Integer.parseInt(filterCategory));
                 } else if (filterCompleted != null && !filterCompleted.isEmpty()) {
                     boolean isCompleted = Boolean.parseBoolean(filterCompleted);
-                    tasks = taskDAO.getTasksByCompletionStatus(userId, isCompleted); [cite_start]// Visualizza completate/in sospeso [cite: 39]
+                    tasks = taskDAO.getTasksByCompletionStatus(userId, isCompleted);
                 } else {
                     tasks = taskDAO.getAllUserTasks(userId);
                 }
@@ -99,16 +99,16 @@ public class TaskServlet extends HttpServlet {
         try {
             switch (action) {
                 case "/app/tasks/create":
-                    createTask(request, response, userId); [cite_start]// Creazione attività [cite: 136]
+                    createTask(request, response, userId);
                     break;
                 case "/app/tasks/edit":
-                    updateTask(request, response, userId); [cite_start]// Modifica attività [cite: 30]
+                    updateTask(request, response, userId);
                     break;
                 case "/app/tasks/delete":
-                    deleteTask(request, response, userId); [cite_start]// Eliminazione attività [cite: 31]
+                    deleteTask(request, response, userId);
                     break;
                 case "/app/tasks/complete":
-                    toggleTaskCompletion(request, response, userId); [cite_start]// Segna come completata/non completata [cite: 32]
+                    toggleTaskCompletion(request, response, userId);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -127,7 +127,6 @@ public class TaskServlet extends HttpServlet {
         int priorityId = Integer.parseInt(request.getParameter("priority"));
         int categoryId = Integer.parseInt(request.getParameter("category"));
 
-        [cite_start]// Validazione dei dati [cite: 135]
         if (!ValidationUtils.isValidTaskTitle(title) || !ValidationUtils.isValidDueDate(dueDateStr)) {
             request.setAttribute("errorMessage", "Dati attività non validi. Titolo obbligatorio, data nel formato YYYY-MM-DD.");
             List<Category> categories = categoryDAO.getAllCategories();
@@ -149,10 +148,10 @@ public class TaskServlet extends HttpServlet {
             newTask.setCompleted(false);
 
             taskDAO.addTask(newTask);
-            response.sendRedirect(request.getContextPath() + "/app/tasks?message=taskCreated"); [cite_start]// Conferma creazione [cite: 137]
+            response.sendRedirect(request.getContextPath() + "/app/tasks?message=taskCreated");
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "Errore durante la creazione dell'attività: " + e.getMessage()); [cite_start]// Errore di salvataggio [cite: 141]
+            request.setAttribute("errorMessage", "Errore durante la creazione dell'attività: " + e.getMessage());
             List<Category> categories = categoryDAO.getAllCategories();
             List<Priority> priorities = priorityDAO.getAllPriorities();
             request.setAttribute("categories", categories);
@@ -176,7 +175,7 @@ public class TaskServlet extends HttpServlet {
             List<Priority> priorities = priorityDAO.getAllPriorities();
             request.setAttribute("categories", categories);
             request.setAttribute("priorities", priorities);
-            Task currentTask = taskDAO.getTaskById(taskId, userId); // Ricarica la task per mostrare il form con i dati attuali
+            Task currentTask = taskDAO.getTaskById(taskId, userId);
             request.setAttribute("task", currentTask);
             request.getRequestDispatcher("/WEB-INF/views/edit_task.jsp").forward(request, response);
             return;
@@ -185,7 +184,7 @@ public class TaskServlet extends HttpServlet {
         try {
             Task taskToUpdate = new Task();
             taskToUpdate.setId(taskId);
-            taskToUpdate.setUserId(userId); // Assicurati che l'utente sia autorizzato
+            taskToUpdate.setUserId(userId);
             taskToUpdate.setTitle(title);
             taskToUpdate.setDescription(description);
             taskToUpdate.setDueDate(Date.valueOf(dueDateStr));
@@ -205,7 +204,7 @@ public class TaskServlet extends HttpServlet {
     private void deleteTask(HttpServletRequest request, HttpServletResponse response, int userId) throws ServletException, IOException {
         int taskId = Integer.parseInt(request.getParameter("id"));
         try {
-            taskDAO.deleteTask(taskId, userId); // Assicurati che l'utente sia autorizzato a eliminare questa task
+            taskDAO.deleteTask(taskId, userId);
             response.sendRedirect(request.getContextPath() + "/app/tasks?message=taskDeleted");
         } catch (Exception e) {
             e.printStackTrace();
@@ -216,7 +215,7 @@ public class TaskServlet extends HttpServlet {
 
     private void toggleTaskCompletion(HttpServletRequest request, HttpServletResponse response, int userId) throws ServletException, IOException {
         int taskId = Integer.parseInt(request.getParameter("id"));
-        boolean isCompleted = Boolean.parseBoolean(request.getParameter("is_completed")); // Valore passato dal form
+        boolean isCompleted = Boolean.parseBoolean(request.getParameter("is_completed"));
 
         try {
             Task task = taskDAO.getTaskById(taskId, userId);
