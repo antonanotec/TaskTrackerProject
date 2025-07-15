@@ -1,4 +1,4 @@
-// authentication_filter.java
+// AuthenticationFilter.java
 package com.tasktracker.filter;
 
 import java.io.IOException;
@@ -28,21 +28,18 @@ public class AuthenticationFilter implements Filter {
         String path = httpRequest.getRequestURI();
         String contextPath = httpRequest.getContextPath();
 
-        // Escludi le pagine di login e registrazione dal filtro
-        if (path.startsWith(contextPath + "/login") || path.startsWith(contextPath + "/register")) {
+        if (path.startsWith(contextPath + "/login") || path.startsWith(contextPath + "/register") || path.equals(contextPath + "/") || path.equals(contextPath + "/index.jsp")) {
             chain.doFilter(request, response);
             return;
         }
 
-        HttpSession session = httpRequest.getSession(false); // Non creare una nuova sessione se non esiste
+        HttpSession session = httpRequest.getSession(false);
 
         if (session == null || session.getAttribute("userId") == null) {
-            [cite_start]// L'utente non è autenticato, reindirizza alla pagina di login [cite: 124]
             httpResponse.sendRedirect(contextPath + "/login?error=sessionExpired");
             return;
         }
 
-        // L'utente è autenticato, continua la catena dei filtri/servlet
         chain.doFilter(request, response);
     }
 
