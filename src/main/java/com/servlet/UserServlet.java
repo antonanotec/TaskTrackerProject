@@ -1,4 +1,4 @@
-// user_servlet.java
+// UserServlet.java
 package com.tasktracker.servlet;
 
 import com.tasktracker.dao.UserDAO;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-@WebServlet({"/login", "/register", "/logout"}) // Mappatura per login, register e logout
+@WebServlet({"/login", "/register", "/logout"})
 public class UserServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private UserDAO userDAO;
@@ -33,7 +33,7 @@ public class UserServlet extends HttpServlet {
         } else if ("/logout".equals(path)) {
             HttpSession session = request.getSession(false);
             if (session != null) {
-                session.invalidate(); // Invalida la sessione
+                session.invalidate();
             }
             response.sendRedirect(request.getContextPath() + "/login?message=logoutSuccess");
         } else {
@@ -58,14 +58,12 @@ public class UserServlet extends HttpServlet {
         String password = request.getParameter("password");
         String email = request.getParameter("email");
 
-        [cite_start]// Validazione dei dati [cite: 107]
         if (!ValidationUtils.isValidUsername(username) || !ValidationUtils.isValidPassword(password) || !ValidationUtils.isValidEmail(email)) {
-            request.setAttribute("errorMessage", "Dati di registrazione non validi. Username almeno 3 caratteri, password almeno 6, email valida.");
+            request.setAttribute("errorMessage", "Dati di registrazione non validi. Username (3-20 alfanumerici), password (almeno 6 caratteri), email valida.");
             request.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(request, response);
             return;
         }
 
-        [cite_start]// Verifica unicità username [cite: 108]
         if (userDAO.getUserByUsername(username) != null) {
             request.setAttribute("errorMessage", "Username già in uso. Scegli un username diverso.");
             request.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(request, response);
@@ -73,19 +71,20 @@ public class UserServlet extends HttpServlet {
         }
 
         try {
-            String hashedPassword = PasswordUtils.hashPassword(password); [cite_start]// Cripta la password [cite: 109]
+            String hashedPassword = PasswordUtils.hashPassword(password);
             User newUser = new User();
             newUser.setUsername(username);
             newUser.setHashedPassword(hashedPassword);
             newUser.setEmail(email);
-            newUser.setAdmin(false); // Default non amministratore
+            newUser.setAdmin(false);
+            newUser.setActive(true);
 
-            userDAO.addUser(newUser); [cite_start]// Salva l'utente nel database [cite: 110]
+            userDAO.addUser(newUser);
 
-            response.sendRedirect(request.getContextPath() + "/login?message=registrationSuccess"); [cite_start]// Reindirizza al login [cite: 112]
+            response.sendRedirect(request.getContextPath() + "/login?message=registrationSuccess");
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "Errore durante la registrazione: " + e.getMessage()); [cite_start]// Messaggio di errore tecnico [cite: 116]
+            request.setAttribute("errorMessage", "Errore durante la registrazione: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(request, response);
         }
     }
@@ -97,21 +96,26 @@ public class UserServlet extends HttpServlet {
         try {
             User user = userDAO.getUserByUsername(username);
 
-            [cite_start]// Validazione credenziali e hash della password [cite: 121, 122]
             if (user != null && PasswordUtils.checkPassword(password, user.getHashedPassword())) {
+                if (!user.isActive()) {
+                    request.setAttribute("errorMessage", "Il tuo account è stato disabilitato. Contatta l'amministratore.");
+                    request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+                    return;
+                }
+
                 HttpSession session = request.getSession();
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("username", user.getUsername());
-                session.setAttribute("isAdmin", user.isAdmin()); // Memorizza se è admin
+                session.setAttribute("isAdmin", user.isAdmin());
 
-                response.sendRedirect(request.getContextPath() + "/app/dashboard"); [cite_start]// Reindirizza alla dashboard [cite: 124]
+                response.sendRedirect(request.getContextPath() + "/app/dashboard");
             } else {
-                request.setAttribute("errorMessage", "Credenziali non valide. Riprova."); [cite_start]// Errore di autenticazione [cite: 126]
+                request.setAttribute("errorMessage", "Credenziali non valide. Riprova.");
                 request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "Errore tecnico durante l'autenticazione: " + e.getMessage()); [cite_start]// Errore tecnico [cite: 127]
+            request.setAttribute("errorMessage", "Errore tecnico durante l'autenticazione: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
         }
     }
